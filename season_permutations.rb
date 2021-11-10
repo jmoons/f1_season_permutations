@@ -9,15 +9,16 @@
 #   }
 # }
 
-results = {}
-result_count = 1
-
 MAX_NAME = "Max"
 LEWIS_NAME = "Lewis"
 POSTION_NAME = "Position"
 NEITHER_NAME = "Neither"
 POINTS_NAME = "Points"
 FASTEST_LAP_NAME = "FastestLap"
+POINTS_PER_POSITION = { 1 => 25, 2 => 18, 3 => 15, 4 => 12, 5 => 10, 6 => 8, 7 => 6, 8 => 4, 9 => 2, 10 => 1 }
+
+results = {}
+result_count = 1
 
 (1..11).each do | max_position |
   (1..11).each do | lewis_position |
