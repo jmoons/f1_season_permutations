@@ -23,14 +23,18 @@
 #   }
 # }
 
-RACE_PERMUTATION_INITIALIZATION_MAX_POINTS_KEY = "max_initial_points"
-RACE_PERMUTATION_INITIALIZATION_LEWIS_POINTS_KEY = "lewis_initial_points"
+MAX_INITIAL_POINTS = "MaxInitialPoints"
+LEWIS_INITIAL_POINTS = "LewisInitialPoints"
 MAX_NAME = "Max"
 LEWIS_NAME = "Lewis"
 POSTION_NAME = "Position"
 NEITHER_NAME = "Neither"
 POINTS_NAME = "Points"
 FASTEST_LAP_NAME = "FastestLap"
+QUALIFYING_POINTS = {1 => 3, 2 => 2, 3 => 1, 4 => 0}
+MAX_STARTING_POINTS = 312.5
+LEWIS_STARTING_POINTS = 293.5
+
 
 class RacePermutations
 
@@ -38,8 +42,8 @@ class RacePermutations
   POINTS_FOR_FASTEST_LAP = 1
 
   def initialize( initial_points_hash )
-    @max_initial_points = initial_points_hash[RACE_PERMUTATION_INITIALIZATION_MAX_POINTS_KEY]
-    @lewis_initial_points = initial_points_hash[RACE_PERMUTATION_INITIALIZATION_LEWIS_POINTS_KEY]
+    @max_initial_points = initial_points_hash[MAX_INITIAL_POINTS]
+    @lewis_initial_points = initial_points_hash[LEWIS_INITIAL_POINTS]
   end
 
   def execute_permutations
@@ -49,7 +53,7 @@ class RacePermutations
 
     (1..11).each do | max_position |
       (1..11).each do | lewis_position |
-        next if max_position == lewis_position
+        next if ( (max_position == lewis_position) && (max_position < 11) && (lewis_position < 11) )
         (1..3).each do | fastest_lap_winner |
           # Here is a race result, record Max and Lewis's finishing position
           result_count += 1
@@ -97,13 +101,34 @@ class RacePermutations
   end
 end
 
-race_one_permutations = RacePermutations.new( {RACE_PERMUTATION_INITIALIZATION_MAX_POINTS_KEY => 312.5, RACE_PERMUTATION_INITIALIZATION_LEWIS_POINTS_KEY => 293.5} ).execute_permutations
+qualifying_permutations = {}
+qualifying_permutation  = 0
+(1..4).each do | max_qualifying_result |
+  (1..4).each do | lewis_qualifying_result |
+    next if ( (max_qualifying_result == lewis_qualifying_result) && (max_qualifying_result < 4) && (lewis_qualifying_result < 4) )
+    qualifying_permutation += 1
+    qualifying_permutations[qualifying_permutation]= {(MAX_NAME + POSTION_NAME) => max_qualifying_result, (LEWIS_NAME + POSTION_NAME) => lewis_qualifying_result}
+    qualifying_permutations[qualifying_permutation].store(MAX_INITIAL_POINTS, (MAX_STARTING_POINTS + QUALIFYING_POINTS[max_qualifying_result]))
+    qualifying_permutations[qualifying_permutation].store(LEWIS_INITIAL_POINTS, (LEWIS_STARTING_POINTS + QUALIFYING_POINTS[lewis_qualifying_result]))
+  end
+end
+
+race_one_permutations = {}
+race_one_permutation_count = 0
+qualifying_permutations.each_pair do |qualifying_permutation_number, qualifying_permutation|
+  race_one_permutation_count += 1
+  race_one_permutations[race_one_permutation_count] = RacePermutations.new( {MAX_INITIAL_POINTS => qualifying_permutation[MAX_INITIAL_POINTS], LEWIS_INITIAL_POINTS => qualifying_permutation[LEWIS_INITIAL_POINTS]} ).execute_permutations
+end
+
+# Now we have race one - 13 possible starting points for Lewis and max, each producing 330 race finishing point totals
 
 race_two_results = {}
 race_two_count = 0
-race_one_permutations.each_pair do | permutation, result |
-  race_two_count += 1
-  race_two_results[race_two_count] = RacePermutations.new( {RACE_PERMUTATION_INITIALIZATION_MAX_POINTS_KEY => result[ (MAX_NAME + POINTS_NAME) ], RACE_PERMUTATION_INITIALIZATION_LEWIS_POINTS_KEY => result[ (LEWIS_NAME + POINTS_NAME) ]} ).execute_permutations
+race_one_permutations.each_value do | race_one_permutation |
+  race_one_permutation.each_value do | race_one_result |
+    race_two_count += 1
+    race_two_results[race_two_count] = RacePermutations.new( {MAX_INITIAL_POINTS => race_one_result[ (MAX_NAME + POINTS_NAME) ], LEWIS_INITIAL_POINTS => race_one_result[ (LEWIS_NAME + POINTS_NAME) ]} ).execute_permutations
+  end
 end
 
 total_number_of_samples = 0
