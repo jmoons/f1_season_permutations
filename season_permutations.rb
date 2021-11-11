@@ -17,19 +17,20 @@ POSTION_NAME = "Position"
 NEITHER_NAME = "Neither"
 POINTS_NAME = "Points"
 FASTEST_LAP_NAME = "FastestLap"
+
 QUALIFYING_POINTS = {1 => 3, 2 => 2, 3 => 1, 4 => 0}
+POINTS_PER_POSITION = { 1 => 25, 2 => 18, 3 => 15, 4 => 12, 5 => 10, 6 => 8, 7 => 6, 8 => 4, 9 => 2, 10 => 1, 11 => 0 }
+POINTS_FOR_FASTEST_LAP = 1
 MAX_STARTING_POINTS = 312.5
 LEWIS_STARTING_POINTS = 293.5
-RACE_POSITIONS_TO_SIMULATE = (1..11)
-QUALIFYING_POSITIONS_TO_SIMULATE = (1..4)
+
+RACE_POSITIONS_TO_SIMULATE = (1..POINTS_PER_POSITION.length)
+QUALIFYING_POSITIONS_TO_SIMULATE = (1..QUALIFYING_POINTS.length)
 
 
 class RacePermutations
 
   attr_reader :results
-
-  POINTS_PER_POSITION = { 1 => 25, 2 => 18, 3 => 15, 4 => 12, 5 => 10, 6 => 8, 7 => 6, 8 => 4, 9 => 2, 10 => 1 }
-  POINTS_FOR_FASTEST_LAP = 1
 
   def initialize( initial_points_hash )
     @max_initial_points = initial_points_hash[MAX_INITIAL_POINTS]
@@ -76,20 +77,12 @@ class RacePermutations
           individual_result.store( FASTEST_LAP_NAME, fastest_lap_winner )
 
           # Update Max point total including fastest lap if applicable
-          if max_position <= 10
-            individual_result.store( (MAX_NAME + POINTS_NAME), ( @max_initial_points + POINTS_PER_POSITION[max_position] ) )
-            individual_result[ (MAX_NAME + POINTS_NAME) ] += 1 if fastest_lap_winner == MAX_NAME
-          else
-            individual_result.store( (MAX_NAME + POINTS_NAME), @max_initial_points )
-          end
+          individual_result.store( (MAX_NAME + POINTS_NAME), ( @max_initial_points + POINTS_PER_POSITION[max_position] ) )
+          individual_result[ (MAX_NAME + POINTS_NAME) ] += 1 if ( fastest_lap_winner == MAX_NAME && max_position <= 10 )
 
           # Update Lewis point total including fastest lap if applicable
-          if lewis_position <=10
-            individual_result.store( (LEWIS_NAME + POINTS_NAME), ( @lewis_initial_points + POINTS_PER_POSITION[lewis_position] ) )
-            individual_result[ (LEWIS_NAME + POINTS_NAME) ] += 1 if fastest_lap_winner == LEWIS_NAME
-          else
-            individual_result.store( (LEWIS_NAME + POINTS_NAME), @lewis_initial_points )
-          end
+          individual_result.store( (LEWIS_NAME + POINTS_NAME), ( @lewis_initial_points + POINTS_PER_POSITION[lewis_position] ) )
+          individual_result[ (LEWIS_NAME + POINTS_NAME) ] += 1 if ( fastest_lap_winner == LEWIS_NAME && lewis_position <= 10 )
 
           results << individual_result
         end
@@ -99,8 +92,6 @@ class RacePermutations
     results
   end
 end
-
-single_race = RacePermutations.new( {MAX_INITIAL_POINTS => MAX_STARTING_POINTS, LEWIS_INITIAL_POINTS => LEWIS_STARTING_POINTS} )
 
 # Work through possible Brazil outcomes. 
 # Brazil has a Sprint Qualifying format which awards points to the 1st, 2nd, and 3rd places.
