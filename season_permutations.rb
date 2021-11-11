@@ -34,6 +34,7 @@ FASTEST_LAP_NAME = "FastestLap"
 QUALIFYING_POINTS = {1 => 3, 2 => 2, 3 => 1, 4 => 0}
 MAX_STARTING_POINTS = 312.5
 LEWIS_STARTING_POINTS = 293.5
+RACE_POSITIONS_TO_SIMULATE = (1..11)
 
 
 class RacePermutations
@@ -51,48 +52,35 @@ class RacePermutations
     results = {}
     result_count = 0
 
-    (1..11).each do | max_position |
-      (1..11).each do | lewis_position |
+    RACE_POSITIONS_TO_SIMULATE.each do | max_position |
+      RACE_POSITIONS_TO_SIMULATE.each do | lewis_position |
         next if ( (max_position == lewis_position) && (max_position < 11) && (lewis_position < 11) )
-        (1..3).each do | fastest_lap_winner |
+
+        [ MAX_NAME, LEWIS_NAME, NEITHER_NAME ].each do | fastest_lap_winner |
           # Here is a race result, record Max and Lewis's finishing position
           result_count += 1
           results[result_count] = { (MAX_NAME + POSTION_NAME) => max_position }
           results[result_count][ (LEWIS_NAME + POSTION_NAME) ] = lewis_position
 
-          # Update Max point total
+          # Record who won the fastest lap
+          results[result_count].store( FASTEST_LAP_NAME, fastest_lap_winner)
+
+          # Update Max point total including fastest lap if applicable
           if max_position <= 10
             results[result_count][ (MAX_NAME + POINTS_NAME) ] = ( @max_initial_points + POINTS_PER_POSITION[max_position] )
+            results[result_count][ (MAX_NAME + POINTS_NAME) ] += 1 if fastest_lap_winner == MAX_NAME
           else
             results[result_count][ (MAX_NAME + POINTS_NAME) ] = @max_initial_points
           end
 
-          # Update Lewis point total
+          # Update Lewis point total including fastest lap if applicable
           if lewis_position <=10
             results[result_count][ (LEWIS_NAME + POINTS_NAME) ] = ( @lewis_initial_points + POINTS_PER_POSITION[lewis_position] )
+            results[result_count][ (LEWIS_NAME + POINTS_NAME) ] += 1 if fastest_lap_winner == LEWIS_NAME
           else
             results[result_count][ (LEWIS_NAME + POINTS_NAME) ] = @lewis_initial_points
           end
 
-          case fastest_lap_winner
-          when 1
-            # Max won the fastest lap!
-            results[result_count].store( FASTEST_LAP_NAME, MAX_NAME)
-
-            # And gets a bonus point!
-            results[result_count][ (MAX_NAME + POINTS_NAME) ] += 1 if max_position <= 10
-
-          when 2
-            # Lewis won the fastest lap!
-            results[result_count].store( FASTEST_LAP_NAME, LEWIS_NAME)
-
-            # And gets a bonus point!
-            results[result_count][ (LEWIS_NAME + POINTS_NAME) ] += 1 if lewis_position <= 10
-
-          when 3
-            # Neither Max nor Lewis won the fastest lap!
-            results[result_count].store( FASTEST_LAP_NAME, NEITHER_NAME)
-          end
         end
       end
     end
