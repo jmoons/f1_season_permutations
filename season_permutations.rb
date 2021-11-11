@@ -23,6 +23,17 @@
 #   }
 # }
 
+# New Data Model - array of hashes, each hash containing a race outcome
+# [
+#   {
+#     "MaxPosition" => 1,
+#     "LewisPosition" => 2,
+#     "FastestLap" => "Max",
+#     "MaxPoints" => 1,
+#     "LewisPoints" => 1,
+#   }
+# ]
+
 MAX_INITIAL_POINTS = "MaxInitialPoints"
 LEWIS_INITIAL_POINTS = "LewisInitialPoints"
 MAX_NAME = "Max"
