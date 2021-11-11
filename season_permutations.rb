@@ -21,6 +21,7 @@ QUALIFYING_POINTS = {1 => 3, 2 => 2, 3 => 1, 4 => 0}
 MAX_STARTING_POINTS = 312.5
 LEWIS_STARTING_POINTS = 293.5
 RACE_POSITIONS_TO_SIMULATE = (1..11)
+QUALIFYING_POSITIONS_TO_SIMULATE = (1..4)
 
 
 class RacePermutations
@@ -34,6 +35,26 @@ class RacePermutations
     @max_initial_points = initial_points_hash[MAX_INITIAL_POINTS]
     @lewis_initial_points = initial_points_hash[LEWIS_INITIAL_POINTS]
     @results = execute_permutations
+  end
+
+  def self.analyze_results( race_results, display_text = "No Display Text Defined" )
+    max_leading_instances = 0
+    lewis_leading_instances = 0
+    tied_number_instances = 0
+    total_number_of_instances = 0
+    race_results.flatten.each do | race_result |
+
+      total_number_of_instances += 1
+      max_leading_instances += 1 if race_result[(MAX_NAME + POINTS_NAME)] > race_result[(LEWIS_NAME + POINTS_NAME)]
+      lewis_leading_instances += 1 if race_result[(MAX_NAME + POINTS_NAME)] < race_result[(LEWIS_NAME + POINTS_NAME)]
+      tied_number_instances += 1 if race_result[(MAX_NAME + POINTS_NAME)] == race_result[(LEWIS_NAME + POINTS_NAME)]
+    end
+    puts "===================#{display_text}==================="
+    puts "Total Number of Instances: #{total_number_of_instances}"
+    puts "Max Leading: #{max_leading_instances} (#{((max_leading_instances.to_f / total_number_of_instances) * 100).round(5)})"
+    puts "Lewis Leading: #{lewis_leading_instances} (#{((lewis_leading_instances.to_f / total_number_of_instances) * 100).round(5)})"
+    puts "Tied!: #{tied_number_instances} (#{( (tied_number_instances.to_f / total_number_of_instances) * 100).round(5)})"
+    puts "========================================================="
   end
 
   private
@@ -81,52 +102,29 @@ end
 
 single_race = RacePermutations.new( {MAX_INITIAL_POINTS => MAX_STARTING_POINTS, LEWIS_INITIAL_POINTS => LEWIS_STARTING_POINTS} )
 
+# Work through possible Brazil outcomes. 
+# Brazil has a Sprint Qualifying format which awards points to the 1st, 2nd, and 3rd places.
+# Because of this, there are 13 possible permutations of the points that Max and Lewis will respectively
+# start the race with.
+brazil_results = []
+QUALIFYING_POSITIONS_TO_SIMULATE.each do | max_qualifying_result |
+  QUALIFYING_POSITIONS_TO_SIMULATE.each do | lewis_qualifying_result |
+    next if ( (max_qualifying_result == lewis_qualifying_result) && (max_qualifying_result < 4) && (lewis_qualifying_result < 4) )
+    # Get possible results from this starting Position
+    brazil_results << RacePermutations.new( { MAX_INITIAL_POINTS => (MAX_STARTING_POINTS + QUALIFYING_POINTS[max_qualifying_result]),
+                                              LEWIS_INITIAL_POINTS => (LEWIS_STARTING_POINTS + QUALIFYING_POINTS[lewis_qualifying_result])
+                                            } ).results
+  end
+end
 
-# qualifying_permutation  = 0
-# (1..4).each do | max_qualifying_result |
-#   (1..4).each do | lewis_qualifying_result |
-#     next if ( (max_qualifying_result == lewis_qualifying_result) && (max_qualifying_result < 4) && (lewis_qualifying_result < 4) )
-#     qualifying_permutation += 1
-#     qualifying_permutations[qualifying_permutation]= {(MAX_NAME + POSTION_NAME) => max_qualifying_result, (LEWIS_NAME + POSTION_NAME) => lewis_qualifying_result}
-#     qualifying_permutations[qualifying_permutation].store(MAX_INITIAL_POINTS, (MAX_STARTING_POINTS + QUALIFYING_POINTS[max_qualifying_result]))
-#     qualifying_permutations[qualifying_permutation].store(LEWIS_INITIAL_POINTS, (LEWIS_STARTING_POINTS + QUALIFYING_POINTS[lewis_qualifying_result]))
-#   end
-# end
+puts RacePermutations.analyze_results(brazil_results, "Brazil Results")
 
-# race_one_permutations = {}
-# race_one_permutation_count = 0
-# qualifying_permutations.each_pair do |qualifying_permutation_number, qualifying_permutation|
-#   race_one_permutation_count += 1
-#   race_one_permutations[race_one_permutation_count] = RacePermutations.new( {MAX_INITIAL_POINTS => qualifying_permutation[MAX_INITIAL_POINTS], LEWIS_INITIAL_POINTS => qualifying_permutation[LEWIS_INITIAL_POINTS]} ).execute_permutations
-# end
+abu_dhabi_results = []
+brazil_results.flatten.each do | brazil_result |
+  # Get possible results from this starting Position
+  abu_dhabi_results << RacePermutations.new( { MAX_INITIAL_POINTS => brazil_result[(MAX_NAME + POINTS_NAME)],
+                                              LEWIS_INITIAL_POINTS => brazil_result[(LEWIS_NAME + POINTS_NAME)]
+                                            } ).results
+end
 
-# # Now we have race one - 13 possible starting points for Lewis and max, each producing 330 race finishing point totals
-
-# race_two_results = {}
-# race_two_count = 0
-# race_one_permutations.each_value do | race_one_permutation |
-#   race_one_permutation.each_value do | race_one_result |
-#     race_two_count += 1
-#     race_two_results[race_two_count] = RacePermutations.new( {MAX_INITIAL_POINTS => race_one_result[ (MAX_NAME + POINTS_NAME) ], LEWIS_INITIAL_POINTS => race_one_result[ (LEWIS_NAME + POINTS_NAME) ]} ).execute_permutations
-#   end
-# end
-
-# total_number_of_samples = 0
-# max_wins = 0
-# lewis_wins = 0
-# tie_wins = 0
-# race_two_results.each_pair do | permutation, result |
-
-#   result.each_pair do | per, res |
-#     total_number_of_samples += 1
-#     max_wins += 1 if res[ (MAX_NAME + POINTS_NAME) ] > res[ (LEWIS_NAME + POINTS_NAME) ]
-#     lewis_wins += 1 if res[ (LEWIS_NAME + POINTS_NAME) ] > res[ (MAX_NAME + POINTS_NAME) ]
-#     tie_wins += 1 if res[ (MAX_NAME + POINTS_NAME) ] == res[ (LEWIS_NAME + POINTS_NAME) ]
-#     # puts res.inspect if res[ (MAX_NAME + POINTS_NAME) ] == res[ (LEWIS_NAME + POINTS_NAME) ]
-#   end
-# end
-
-# puts "total_number_of_samples: #{total_number_of_samples}"
-# puts "Max Wins Championship: #{max_wins}, (#{( (max_wins.to_f / total_number_of_samples) * 100 ).round(5)}%)"
-# puts "Lewis Wins Championship: #{lewis_wins}, (#{( (lewis_wins.to_f / total_number_of_samples) * 100 ).round(5)}%)"
-# puts "Tied Championship Points: #{tie_wins}, (#{( (tie_wins.to_f / total_number_of_samples) * 100 ).round(5)}%)"
+puts RacePermutations.analyze_results(abu_dhabi_results, "Season Results")
