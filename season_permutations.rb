@@ -21,8 +21,8 @@ FASTEST_LAP_NAME = "FastestLap"
 QUALIFYING_POINTS = {1 => 3, 2 => 2, 3 => 1, 4 => 0}
 POINTS_PER_POSITION = { 1 => 25, 2 => 18, 3 => 15, 4 => 12, 5 => 10, 6 => 8, 7 => 6, 8 => 4, 9 => 2, 10 => 1, 11 => 0 }
 POINTS_FOR_FASTEST_LAP = 1
-MAX_STARTING_POINTS = 312.5
-LEWIS_STARTING_POINTS = 293.5
+MAX_STARTING_POINTS = 332.5
+LEWIS_STARTING_POINTS = 318.5
 
 RACE_POSITIONS_TO_SIMULATE = (1..POINTS_PER_POSITION.length)
 QUALIFYING_POSITIONS_TO_SIMULATE = (1..QUALIFYING_POINTS.length)
@@ -93,28 +93,28 @@ class RacePermutations
   end
 end
 
-# Work through possible Brazil outcomes. 
-# Brazil has a Sprint Qualifying format which awards points to the 1st, 2nd, and 3rd places.
-# Because of this, there are 13 possible permutations of the points that Max and Lewis will respectively
-# start the race with.
-brazil_results = []
-QUALIFYING_POSITIONS_TO_SIMULATE.each do | max_qualifying_result |
-  QUALIFYING_POSITIONS_TO_SIMULATE.each do | lewis_qualifying_result |
-    next if ( (max_qualifying_result == lewis_qualifying_result) && (max_qualifying_result < 4) && (lewis_qualifying_result < 4) )
-    # Get possible results from this starting Position
-    brazil_results << RacePermutations.new( { MAX_INITIAL_POINTS => (MAX_STARTING_POINTS + QUALIFYING_POINTS[max_qualifying_result]),
-                                              LEWIS_INITIAL_POINTS => (LEWIS_STARTING_POINTS + QUALIFYING_POINTS[lewis_qualifying_result])
+qatar_results = RacePermutations.new( { MAX_INITIAL_POINTS => MAX_STARTING_POINTS,
+                                              LEWIS_INITIAL_POINTS => LEWIS_STARTING_POINTS
                                             } ).results
-  end
+
+
+puts RacePermutations.analyze_results(qatar_results, "Qatar Results")
+
+saudi_arabia_results = []
+qatar_results.flatten.each do | qatar_result |
+  # Get possible results from this starting Position
+  saudi_arabia_results << RacePermutations.new( { MAX_INITIAL_POINTS => qatar_result[(MAX_NAME + POINTS_NAME)],
+                                              LEWIS_INITIAL_POINTS => qatar_result[(LEWIS_NAME + POINTS_NAME)]
+                                            } ).results
 end
 
-puts RacePermutations.analyze_results(brazil_results, "Brazil Results")
+puts RacePermutations.analyze_results(saudi_arabia_results, "Saudi Arabia Results")
 
 abu_dhabi_results = []
-brazil_results.flatten.each do | brazil_result |
+saudi_arabia_results.flatten.each do | saudi_arabia_result |
   # Get possible results from this starting Position
-  abu_dhabi_results << RacePermutations.new( { MAX_INITIAL_POINTS => brazil_result[(MAX_NAME + POINTS_NAME)],
-                                              LEWIS_INITIAL_POINTS => brazil_result[(LEWIS_NAME + POINTS_NAME)]
+  abu_dhabi_results << RacePermutations.new( { MAX_INITIAL_POINTS => saudi_arabia_result[(MAX_NAME + POINTS_NAME)],
+                                              LEWIS_INITIAL_POINTS => saudi_arabia_result[(LEWIS_NAME + POINTS_NAME)]
                                             } ).results
 end
 
